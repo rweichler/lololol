@@ -1,0 +1,4 @@
+Has a series of 250,000 insertions in order from 1 to 250000
+Has a series of 125,000 insertions in order from 1 to 125000 followed by 125,000 deletions 1 to 125000
+Has a series of 125,000 insertions in order from 1 to 125000 followed by 125,000 deletions 125000 to 1
+Has a series of 125000 random, unique insertions from 1 to 125000 followed by 125000 random, unique deletions
