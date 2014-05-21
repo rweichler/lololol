@@ -98,11 +98,13 @@ int main(int argc, char** argv) {
       for(int j = 0; j < 10; j++)
         if(operations[i].returnedValues[j] != -1 
           && (strcmp(players[operations[i].returnedValues[j]].name, top10[j].name)
-          || strcmp(players[operations[i].returnedValues[j]].team, top10[j].team)))
+          || strcmp(players[operations[i].returnedValues[j]].team, top10[j].team)));
+      /*
           cout << "Bad list for operation "  << i << " position " << j
             << " was " << top10[j].name << ' ' << top10[j].team << " should be " 
             << players[operations[i].returnedValues[j]].name << ' '
             << players[operations[i].returnedValues[j]].team << endl;
+    */
     } // else QUERY
   
   endTime = getCPUTime();

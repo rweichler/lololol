@@ -1,5 +1,8 @@
-stats.out : statrunner.o stats.o  
-	g++ -ansi -g  -Wall  -o stats.out statrunner.o stats.o  
+stats.out : statrunner.o stats.o vector.o
+	g++ -ansi -g  -Wall  -o stats.out statrunner.o stats.o vector.o
+
+vector.o: vector.cpp vector.h mystring.h
+	g++ -ansi -g -Wall -c vector.cpp
 
 statrunner.o : statrunner.cpp CPUTimer.h statrunner.h stats.h 
 	g++ -ansi -g  -Wall  -c statrunner.cpp
@@ -8,4 +11,4 @@ stats.o : stats.cpp stats.h statrunner.h
 	g++ -ansi -g  -Wall  -c stats.cpp
 
 clean : 
-	rm -f stats.out statrunner.o  stats.o   
+	rm -f stats.out statrunner.o stats.o QuadraticProbing.o vector.o
