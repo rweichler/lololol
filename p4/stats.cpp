@@ -21,7 +21,8 @@ typedef struct ply{ //stored in hashtable for players
 } ply;
 
 typedef struct team{ //stored in hashtable for teams
-    struct t10 *top10;
+    struct t10 *smallest;
+    struct t10 *biggest;
     int count; //# of elements in top10
     QuadraticHashTable<uintptr_t> *players;
 } team;
@@ -33,6 +34,7 @@ typedef struct t10 { //stored in tm and as a global var (for MLB)
     struct ply *player;
 } t10;
 
+t10 *MLBsmallest = NULL;
 t10 *MLB = NULL; //points to the smallest member of top10 of all teams
 int MLBcount = 0; //# of elements in top10
 QuadraticHashTable<int> *teams;
@@ -57,90 +59,45 @@ Stats::Stats()
     PLY->team = TEAM;\
 } while(0)
 
-#define PRINT_TOP10(T10) do{\
+#define PRINT_TOP10(T10, OP) do{\
     int __i;\
     t10 *__tmp = T10;\
-    for(__i = 1; __tmp != NULL; __i++, __tmp = __tmp->bigger)\
+    for(__i = 0; __i < 10 && __tmp != NULL; __i++, __tmp = __tmp->OP)\
     {\
         printf("%d. %s (%s) %f\n", __i, __tmp->player->name, __tmp->player->team, __tmp->player->avg);\
     }\
-    if(*count == 10 && __i != 11)\
-    {\
-        printf("HOLY FUCK SOMETHING BAD HAPPENED %d\n", __i);\
-        exit(1);\
-    }\
 } while(0)
 
-inline void INSERT_TOP10(t10 **top10Ptr, ply *player, int *count)
+inline void INSERT_TOP10(t10 *ply10, int hit, t10 **smallestPtr, t10 **top10Ptr)
 {
-    t10 *top10 = *top10Ptr;
-    bool isMLB = top10 == MLB;
-
-    bool was10 = *count == 10;
-
-    if(isMLB && *count == 10)
+    if(hit)
     {
-        printf("ismlb and count is 10\n\n");
-        PRINT_TOP10(top10);
+        if(!*smallestPtr)
+        {
+            *smallestPtr = *top10Ptr;
+        }
+        ply10->smaller = *top10Ptr;
+        (*top10Ptr)->bigger = ply10;
+        *top10Ptr = ply10;
     }
-
-    t10 *i, *lasti = NULL;
-    for(i = top10; i && player->avg > i->player->avg; i = i->bigger)
-        lasti = i;
-    //i is the first one bigger than player
-    //lasti is the last one smaller than player
-
-    t10 *p10 = (t10 *)malloc(sizeof(t10));
-    p10->player = player;
-    if(isMLB)
-        player->MLB10 = p10;
     else
-        player->team10 = p10;
-
-    p10->bigger = i;
-    p10->smaller = lasti;
-
-    if(lasti) //if we're not inserting at the beginning
-        lasti->bigger = p10;
-    else if(*count == 10) //oh shit, we are, but its full so fuck it
-        return;
-    else //ok make it at the front then.
-        *top10Ptr = p10;
-
-    if(i) //if we're not inserting at the end
-        i->smaller = p10;
-
-    if(*count == 10)
     {
-        top10->bigger->smaller = NULL;
-
-        if(isMLB)
-            top10->player->MLB10 = NULL;
-        else
-            top10->player->team10 = NULL;
-
-        *top10Ptr = top10->bigger;
-
-        free(top10);
-
-    } else *count = *count + 1;
-
-    if(isMLB && was10)
-    {
-        printf("ismlb and count is 11\n\n");
-        PRINT_TOP10(*top10Ptr);
+        if(!*smallestPtr)
+        {
+            *smallestPtr = ply10;
+            ply10->bigger = *top10Ptr;
+            (*top10Ptr)->smaller = ply10;
+            return;
+        }
+        ply10->bigger = *smallestPtr;
+        (*smallestPtr)->smaller = ply10;
+        *smallestPtr = ply10;
     }
 }
 
-inline void UPDATE_TOP10(t10 **top10Ptr, ply *player, int *count, int hit)
+inline void UPDATE_TOP10(t10 *ply10, int hit, t10 **smallestPtr, t10 **top10Ptr)
 {
-    t10 *top10 = *top10Ptr;
-    bool isMLB = top10 == MLB;
-    t10 *ply10 = isMLB ? player->MLB10 : player->team10;
-
-    //if player is not in the top10, then try to insert.
-    if(!ply10)
-        return INSERT_TOP10(top10Ptr, player, count);
+    ply *player = ply10->player;
 
     if(hit)
     {
@@ -152,11 +109,13 @@ inline void UPDATE_TOP10(t10 **top10Ptr, ply *player, int *count, int hit)
             t10 *four = ply10->bigger->bigger;
 
             if(one) one->bigger = two;
+            else *smallestPtr = two;
             two->smaller = one;
             two->bigger = three;
             three->smaller = two;
             three->bigger = four;
             if(four) four->smaller = three;
+            else *top10Ptr = three;
         }
     }
     else
@@ -169,21 +128,36 @@ inline void UPDATE_TOP10(t10 **top10Ptr, ply *player, int *count, int hit)
             t10 *four = ply10->bigger;
 
             if(one) one->bigger = two;
+            else *smallestPtr = two;
             two->smaller = one;
             two->bigger = three;
             three->smaller = two;
             three->bigger = four;
             if(four) four->smaller = three;
+            else *top10Ptr = three;
         }
     }
 }
 
 #define YEAH -1
 
+t10 *INIT_TOP10(ply *player)
+{
+    t10 *top10 = (t10 *)malloc(sizeof(t10));
+    top10->bigger = NULL;
+    top10->smaller = NULL;
+    top10->player = player;
+    return top10;
+}
+
 void Stats::update(const char nameStr[25], const char teamStr[4], int hit, int operationNum)
 {
+    //printf("-----------MLB---------\ntop to bottom:\n");
+    //printf("bottom to top:\n");
+    //PRINT_TOP10(MLBsmallest, bigger);
+    //printf("Smallest ptr is %p\n", MLBsmallest);
     if(operationNum == YEAH) exit(1);
-    printf("Operation num: %d\n", operationNum);
+    //printf("Operation num: %d\n", operationNum);
     //LOL FUCK USING STRCMP im gonna cheat
     char **ptr = (char **)nameStr;
     uintptr_t namePtr = (uintptr_t)ptr;
@@ -194,19 +168,16 @@ void Stats::update(const char nameStr[25], const char teamStr[4], int hit, int o
     {
         theTeam     = (team *)malloc(sizeof(tm));
         ply *player;
-        t10 *top10  = (t10 *)malloc(sizeof(t10));
+        //t10 *top10  = (t10 *)malloc(sizeof(t10));
 
         //create player
         INIT_PLAYER(player, nameStr, teamStr);
-        player->team10 = top10;
-
-        //put him in his team's top10
-        top10->bigger = NULL;
-        top10->smaller = NULL;
-        top10->player = player;
+        player->team10 = INIT_TOP10(player);//top10;
+        player->MLB10 = INIT_TOP10(player);
 
         //actually create the team
-        theTeam->top10 = top10;
+        theTeam->smallest = NULL;
+        theTeam->biggest = player->team10;
         theTeam->count = 1;
         theTeam->players = new QuadraticHashTable<uintptr_t>(0, 2*40);
 
@@ -216,22 +187,18 @@ void Stats::update(const char nameStr[25], const char teamStr[4], int hit, int o
         teams->insert(HASH_TEAM(teamStr), theTeam);
 
         //MLBcount++;
-        printf("New team!!!!!! %s\n", teamStr);
-        printf("And player!!!! %s %s\n", nameStr, hit ? "hit":"missed");
+        //printf("New team!!!!!! %s\n", teamStr);
+        //printf("And player!!!! %s %s\n", nameStr, hit ? "hit":"missed");
 
         if(!MLB)
         {
-
-            MLB = (t10 *)malloc(sizeof(t10));
-            MLB->bigger = NULL;
-            MLB->smaller = NULL;
-            MLB->player = player;
-            player->MLB10 = MLB;
+            MLBsmallest = NULL;
+            MLB = player->MLB10;
             MLBcount = 1;
         }
         else
         {
-            INSERT_TOP10(&MLB, player, &MLBcount);
+            INSERT_TOP10(player->MLB10, hit, &MLBsmallest, &MLB);
         }
 
         //INSERT_TOP10(&top10, player, &(theTeam->count));
@@ -242,20 +209,22 @@ void Stats::update(const char nameStr[25], const char teamStr[4], int hit, int o
         if(!player)
         {
             INIT_PLAYER(player, nameStr, teamStr);
+            player->team10 = INIT_TOP10(player);//top10;
+            player->MLB10 = INIT_TOP10(player);
             theTeam->players->insert(namePtr, player);
-            printf("New player!!!! %s (%s) %s\n", nameStr, teamStr, hit?"hit":"missed");
+            //printf("New player!!!! %s (%s) %s\n", nameStr, teamStr, hit?"hit":"missed");
 
-            INSERT_TOP10(&(theTeam->top10), player, &(theTeam->count));
-            INSERT_TOP10(&MLB, player, &MLBcount);
+            INSERT_TOP10(player->team10, hit, &(theTeam->smallest), &(theTeam->biggest));
+            INSERT_TOP10(player->MLB10, hit, &MLBsmallest, &MLB);
         }
         else
         {
             player->hits += hit;
             player->atBats++;
             UPDATE_AVG(player);
-            printf("Updating average for %s: %d/%d = %f\n", nameStr, player->hits, player->atBats, player->avg);
-            UPDATE_TOP10(&(theTeam->top10), player, &(theTeam->count), hit);
-            UPDATE_TOP10(&MLB, player, &MLBcount, hit);
+            //printf("Updating average for %s: %d/%d = %f\n", nameStr, player->hits, player->atBats, player->avg);
+            UPDATE_TOP10(player->team10, hit, &(theTeam->smallest), &(theTeam->biggest));
+            UPDATE_TOP10(player->MLB10, hit, &MLBsmallest, &MLB);
         }
 
     }
@@ -263,27 +232,18 @@ void Stats::update(const char nameStr[25], const char teamStr[4], int hit, int o
 
 void Stats::query(const char teamStr[4], Player top10Players[10], int operationNum)
 {
-    if(operationNum == YEAH) exit(1);
-    return;
-    printf("\nvv FOR %d (%s) vv MLBcount = %d\n", operationNum, teamStr, MLBcount);
+    //printf("\nNEED TOP 10 for %s!!!! %d\n", teamStr, operationNum);
     t10 *top10;
     if(IS_MLB(teamStr))
-    {
         top10 = MLB;
-    }
     else
-    {
-        top10 = (t10 *)(teams->find(HASH_TEAM(teamStr)));
-    }
+        top10 = ((team *)teams->find(HASH_TEAM(teamStr)))->biggest;
 
     int i;
-    for(i = 0; top10 && i < 10; i++, top10 = top10->bigger)
+    for(i = 0; i < 10; i++, top10 = top10->smaller)
     {
-        ply *p = top10->player;
-        printf("%p %p\n", p->name, p->team);
-        printf("%d. %s (%s) %d/%d = %f\n", i, p->name, p->team, p->hits, p->atBats, p->avg);
-        //strcpy(top10Players[i].name, top10->player->name);
-        //strcpy(top10Players[i].team, top10->player->team);
+        strcpy(top10Players[i].name, top10->player->name);
+        strcpy(top10Players[i].team, top10->player->team);
         //top10Players[i].name = top10->player->name;
         //top10Players[i].team = top10->player->team;
     }
