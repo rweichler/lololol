@@ -1,3 +1,4 @@
+//Reed Weichler
 #include "stats.h"
 #include "statrunner.h"
 #include <stdio.h>
