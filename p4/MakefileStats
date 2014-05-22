@@ -1,4 +1,4 @@
-//Reed Weichler
+#Reed Weichler
 
 stats.out : statrunner.o stats.o vector.o
 	g++ -ansi -g  -Wall  -o stats.out statrunner.o stats.o vector.o
