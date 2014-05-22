@@ -1,8 +1,5 @@
 #Reed Weichler
 
-all:
-	clear && $(MAKE) sales.out
-
 sales.out : SaleRunner.o sales.o  
 	g++ -ansi -Wall -g -o sales.out SaleRunner.o sales.o  
 
