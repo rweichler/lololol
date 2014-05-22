@@ -9,7 +9,7 @@ sales.out : SaleRunner.o sales.o
 SaleRunner.o : SaleRunner.cpp SaleRunner.h sales.h CPUTimer.h 
 	g++ -ansi -Wall -g -c SaleRunner.cpp
 
-sales.o : sales.cpp SaleRunner.h sales.h 
+sales.o : sales.cpp SaleRunner.h sales.h AvlTree.h AvlTree.cpp dsexceptions.h
 	g++ -ansi -Wall -g -c sales.cpp
 
 clean : 
