@@ -1,7 +1,7 @@
 #Reed Weichler
 
 all:
-	clear && $(MAKE) sales.out && clear && ./sales.out sales-10-3.csv
+	clear && $(MAKE) sales.out
 
 sales.out : SaleRunner.o sales.o  
 	g++ -ansi -Wall -g -o sales.out SaleRunner.o sales.o  
@@ -9,7 +9,7 @@ sales.out : SaleRunner.o sales.o
 SaleRunner.o : SaleRunner.cpp SaleRunner.h sales.h CPUTimer.h 
 	g++ -ansi -Wall -g -c SaleRunner.cpp
 
-sales.o : sales.cpp SaleRunner.h sales.h AvlTree.h AvlTree.cpp dsexceptions.h
+sales.o : sales.cpp SaleRunner.h sales.h
 	g++ -ansi -Wall -g -c sales.cpp
 
 clean : 

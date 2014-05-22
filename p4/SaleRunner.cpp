@@ -1,6 +1,6 @@
 // Author: Sean Davis 
 // Created on May 6, 2014, 4:34 PM
-#define SHOULD_PRINT 0
+#define SHOULD_PRINT 1
 
 
 #include <iostream>
