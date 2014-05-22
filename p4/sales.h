@@ -1,4 +1,4 @@
-// Authors:  
+//Reed Weichler
  
 #ifndef SALES_H
 #define	SALES_H

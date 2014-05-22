@@ -1,3 +1,8 @@
+#Reed Weichler
+
+all:
+	clear && $(MAKE) sales.out && clear && ./sales.out sales-10-3.csv
+
 sales.out : SaleRunner.o sales.o  
 	g++ -ansi -Wall -g -o sales.out SaleRunner.o sales.o  
 

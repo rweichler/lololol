@@ -1,11 +1,15 @@
+//Reed Weichler
 #include "SaleRunner.h"
 #include "sales.h"
 
 
 Sales::Sales(const ProductInfo *productInfo, int productCount) 
 {
+    
+    /*
   for(int i = 0; i< productCount; i++)
     tree.insert(MyProduct(productInfo[i]));
+*/
  }  // Sales())
 
 

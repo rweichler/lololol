@@ -1,5 +1,6 @@
 // Author: Sean Davis 
 // Created on May 6, 2014, 4:34 PM
+#define SHOULD_PRINT 0
 
 
 #include <iostream>
@@ -125,11 +126,11 @@ int main(int argc, char** argv) {
     {
       sales->sale(transactions[i].SKU, transactions[i].value, &ptr, &price);
       
-      if(strcmp(ptr, products[transactions[i].productNum1].name))
+      if(SHOULD_PRINT && strcmp(ptr, products[transactions[i].productNum1].name))
       cout << "Name error on transaction #" << i << " yours: " << ptr
         << " correct: "  << products[transactions[i].productNum1].name << endl;
       
-      if(price != products[transactions[i].productNum1].price)
+      if(SHOULD_PRINT && price != products[transactions[i].productNum1].price)
         cout << "Price error on transaction #" << i << " yours: "  << price
           << " correct: "  <<  products[transactions[i].productNum1].price << endl;
     }  // if sale
@@ -137,7 +138,7 @@ int main(int argc, char** argv) {
     {
       sales->report(transactions[i].SKU, transactions[i].SKU2, &totalSales);
       
-      if(totalSales != transactions[i].value)
+      if(SHOULD_PRINT && totalSales != transactions[i].value)
         cout << "Total sales error on transaction #"  << i << " yours: "
           << totalSales << " correct: "  << transactions[i].value << endl;
     }  // else a report
@@ -146,12 +147,12 @@ int main(int argc, char** argv) {
   sales->belowMinimums(belowMins2, &belowMinCount2);
   endTime = getCPUTime();
   
-  if(belowMinCount != belowMinCount2)
+  if(SHOULD_PRINT && belowMinCount != belowMinCount2)
     cout << "Number of minimums error: yours: "  << belowMinCount2
       << " correct: "  << belowMinCount << endl;
   else
     for(int i = 0; i < belowMinCount; i++)
-      if(belowMins[i] != belowMins2[i])
+      if(SHOULD_PRINT && belowMins[i] != belowMins2[i])
         cout << "Below minimum mismatch at #"  << i << " yours: " 
           << belowMins2[i] << " correct: "  << belowMins[i] << endl; 
   
