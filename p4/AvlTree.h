@@ -15,9 +15,10 @@
             AvlNode   *left;
             AvlNode   *right;
             int        height;
+            void *userData;
 
-            AvlNode( const Comparable & theElement, AvlNode *lt, AvlNode *rt, int h = 0 )
-              : element( theElement ), left( lt ), right( rt ), height( h ) { }
+            AvlNode( const Comparable & theElement, AvlNode *lt, AvlNode *rt, int h = 0, void *u = NULL )
+              : element( theElement ), left( lt ), right( rt ), height( h ), userData ( u ) { }
             friend class AvlTree<Comparable>;
         };
 
@@ -44,15 +45,15 @@
             AvlTree( const AvlTree & rhs );
             ~AvlTree( );
 
-            const Comparable & findMin( ) const;
-            const Comparable & findMax( ) const;
-            const Comparable & find( const Comparable & x ) const;
+            void *findMin( ) const;
+            void *findMax( ) const;
+            void *find( const Comparable & x ) const;
             bool isEmpty( ) const;
             void printTree( ) const;
 
             void makeEmpty( );
-            void insert( const Comparable & x );
-            void remove( const Comparable & x );
+            void insert( const Comparable & x, void *userData );
+            void *remove( const Comparable & x );
 
             const AvlTree & operator=( const AvlTree & rhs );
 
@@ -60,10 +61,10 @@
             AvlNode<Comparable> *root;
             const Comparable ITEM_NOT_FOUND;
 
-            const Comparable & elementAt( AvlNode<Comparable> *t ) const;
+            void *elementAt( AvlNode<Comparable> *t ) const;
 
-            void insert( const Comparable & x, AvlNode<Comparable> * & t ) const;
-            void remove( const Comparable & x, AvlNode<Comparable> * & t) const;
+            void insert( const Comparable & x, void *userData, AvlNode<Comparable> * & t ) const;
+            void * remove( const Comparable & x, AvlNode<Comparable> * & t) const;
             AvlNode<Comparable> * findMin( AvlNode<Comparable> *t ) const;
             AvlNode<Comparable> * findMax( AvlNode<Comparable> *t ) const;
             AvlNode<Comparable> * find( const Comparable & x, AvlNode<Comparable> *t ) const;

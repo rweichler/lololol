@@ -39,9 +39,9 @@
          * Insert x into the tree; duplicates are ignored.
          */
         template <class Comparable>
-        void AvlTree<Comparable>::insert( const Comparable & x )
+        void AvlTree<Comparable>::insert( const Comparable & x, void *userData )
         {
-            insert( x, root );
+            insert( x, userData, root );
         }
 
 /**
@@ -49,9 +49,9 @@
 */
 
 template <class Comparable>
-void AvlTree<Comparable>::remove( const Comparable & x )
+void * AvlTree<Comparable>::remove( const Comparable & x )
 {
- 	remove(x, root);
+ 	return remove(x, root);
 }
 
 
@@ -60,23 +60,23 @@ void AvlTree<Comparable>::remove( const Comparable & x )
 * Written by Sean Davis 10/17/00 
 */
 template <class Comparable>
-void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t) const
+void * AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t) const
 {
   if( t == NULL ) // never found x
-    return; // do nothing
+    return NULL; // do nothing
   else
     if( x < t->element )
-      remove( x, t->left);
+      return remove( x, t->left);
     else
       if( t->element < x )
-        remove( x, t->right);
+        return remove( x, t->right);
       else // Found x
       {
         if(t->right != NULL && t->left != NULL)
         {
           t->element = findMin(t->right)->element;
             // set this node to minimum of right subtree
-          remove(t->element, t->right);  // remove the element we just duplicated
+          return remove(t->element, t->right);  // remove the element we just duplicated
         }  // if two children
         else // one or no children
         {
@@ -87,8 +87,12 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
             if(t->right) // only right child
               temp = t->right;
 
+          void *u = t->userData;
+
           delete t;
           t = temp;
+
+          return u;
         }  // else less than two children
       } // found x
   // Now check and restore AVL property.  This is done for whole path from root.
@@ -119,7 +123,7 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
          * Return smallest item or ITEM_NOT_FOUND if empty.
          */
         template <class Comparable>
-        const Comparable & AvlTree<Comparable>::findMin( ) const
+        void * AvlTree<Comparable>::findMin( ) const
         {
             return elementAt( findMin( root ) );
         }
@@ -129,7 +133,7 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
          * Return the largest item of ITEM_NOT_FOUND if empty.
          */
         template <class Comparable>
-        const Comparable & AvlTree<Comparable>::findMax( ) const
+        void * AvlTree<Comparable>::findMax( ) const
         {
             return elementAt( findMax( root ) );
         }
@@ -139,7 +143,7 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
          * Return the matching item or ITEM_NOT_FOUND if not found.
          */
         template <class Comparable>
-        const Comparable & AvlTree<Comparable>::
+        void * AvlTree<Comparable>::
                                  find( const Comparable & x ) const
         {
             return elementAt( find( x, root ) );
@@ -197,9 +201,9 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
          * Return the element field or ITEM_NOT_FOUND if t is NULL.
          */
         template <class Comparable>
-        const Comparable & AvlTree<Comparable>::elementAt( AvlNode<Comparable> *t ) const
+        void * AvlTree<Comparable>::elementAt( AvlNode<Comparable> *t ) const
         {
-            return t == NULL ? ITEM_NOT_FOUND : t->element;
+            return t == NULL ? NULL : t->userData;
         }
 
         /**
@@ -208,10 +212,10 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
          * t is the node that roots the tree.
          */
         template <class Comparable>
-        void AvlTree<Comparable>::insert( const Comparable & x, AvlNode<Comparable> * & t ) const
+        void AvlTree<Comparable>::insert( const Comparable & x, void *userData, AvlNode<Comparable> * & t ) const
         {
             if( t == NULL )
-                t = new AvlNode<Comparable>( x, NULL, NULL );
+                t = new AvlNode<Comparable>( x, NULL, NULL, userData );
             else if( x < t->element )
             {
                 insert( x, t->left );
@@ -318,7 +322,8 @@ void AvlTree<Comparable>::remove(const Comparable & x, AvlNode<Comparable> * & t
                 return NULL;
             else
                 return new AvlNode<Comparable>( t->element, clone( t->left ),
-                                              clone( t->right ), t->height );
+                                              clone( t->right ), t->height,
+                                              t->userData);
         }
 
         /**
