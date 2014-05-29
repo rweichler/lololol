@@ -25,26 +25,26 @@ int minimum
 typedef ProductInfo Product;
 
 //my only ADT is an array
-ProductInfo **products;
+ProductInfo *products;
 int productCount;
 
 int sort_products(const void *a, const void *b)
 {
-    long long A = (*((ProductInfo **)a))->SKU;
-    long long B = (*((ProductInfo **)b))->SKU;
+    long long A = ((ProductInfo *)a)->SKU;
+    long long B = ((ProductInfo *)b)->SKU;
     long long diff = A - B;
     if(diff < 0) return -1;
     if(diff > 0) return 1;
     return 0;
 }
 
-ProductInfo **find_product_step(int min, long long SKU, int max)
+ProductInfo *find_product_step(int min, long long SKU, int max)
 {
     if(max < min)
         return NULL;
 
     int mid = (min + max)/2;
-    long long comp = products[mid]->SKU;
+    long long comp = products[mid].SKU;
     if(comp > SKU)
         return find_product_step(min, SKU, mid - 1);
     else if(comp < SKU)
@@ -53,29 +53,25 @@ ProductInfo **find_product_step(int min, long long SKU, int max)
         return &products[mid];
 }
 
-ProductInfo **find_product(long long SKU)
+ProductInfo *find_product(long long SKU)
 {
     return find_product_step(0, SKU, productCount - 1);
 }
 
-Sales::Sales(ProductInfoPtr &productInfo, int count) 
+Sales::Sales(const ProductInfo *productInfo, int count) 
 {
     productCount = count;
 
-    products = (ProductInfo **)malloc(count*sizeof(ProductInfo *));
-    for(int i = 0; i < count; i++)
-    {
-        products[i] = productInfo + i;
-    }
-    productInfo = (ProductInfo *)malloc(0);
+    products = (ProductInfo *)malloc(count*sizeof(ProductInfo));
+    memcpy(products, productInfo, count*sizeof(ProductInfo));
 
-    qsort(products, count, sizeof(ProductInfo *), sort_products);
+    qsort(products, count, sizeof(ProductInfo), sort_products);
 
 }
 #define log printf
 void Sales::sale(long long SKU, int numSold, const char **name, int *price)
 {
-    Product *p = *find_product(SKU);
+    Product *p = find_product(SKU);
     *name = p->name;
     *price = p->price;
     SELL(p, numSold);
@@ -85,15 +81,15 @@ void Sales::sale(long long SKU, int numSold, const char **name, int *price)
 void Sales::report(long long SKU, long long SKU2, int *totalSales)
 {
     *totalSales = 0;
-    Product **current = find_product(SKU);
-    Product **last = find_product(SKU2);
+    Product *current = find_product(SKU);
+    Product *last = find_product(SKU2);
 
     while(current != last)
     {
-        *totalSales += NUM_SOLD(*current)*((*current)->price);
+        *totalSales += NUM_SOLD(current)*(current->price);
         current++;
     }
-    *totalSales += NUM_SOLD(*last)*((*last)->price);
+    *totalSales += NUM_SOLD(last)*(last->price);
 }
 
 
@@ -102,7 +98,7 @@ void Sales::belowMinimums(long long belowMin[], int *belowMinCount)
     *belowMinCount = 0;
     for(int i = 0; i < productCount; i++)
     {
-        Product *p = products[i];
+        Product *p = &products[i];
         if(ON_HAND(p) < p->minimum)
         {
             belowMin[*belowMinCount] = p->SKU;
